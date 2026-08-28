@@ -102,7 +102,14 @@ function injectVideo(template, url) {
     };
   }
 
-  const updated = frontmatter.replace(videoLine, () => `video: ${url}`);
+  let updated = frontmatter.replace(videoLine, () => `video: ${url}`);
+
+  const createdLine = /^[ \t]*created_at[ \t]*:.*$/m;
+  if (createdLine.test(updated)) {
+    const today = new Date().toISOString().slice(0, 10);
+    updated = updated.replace(createdLine, () => `created_at: ${today}`);
+  }
+
   return { ok: true, content: template.replace(frontmatter, () => updated) };
 }
 

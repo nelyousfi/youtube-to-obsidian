@@ -12,8 +12,8 @@ plugin, and creates notes from a template you control.
 - One click to save the current YouTube video as a note.
 - Fetches the video title and channel automatically (via YouTube's oEmbed API).
 - Organizes notes as `<talks folder>/<Channel>/<Video Title>.md`.
-- Uses your own note template, with the template's `video` frontmatter property
-  filled in with the video URL.
+- Uses your own note template, filling the `video` frontmatter property with the
+  video URL and the `created_at` property with today's date (when present).
 - Never overwrites an existing note.
 - "Open in Obsidian" link after saving, built from your vault's filesystem path.
 - Blocks saving until the vault path, talks folder, and template are configured.
@@ -71,13 +71,16 @@ to this repository.
 
 Create a note in your vault to use as a template. It needs a `video` property
 in its frontmatter; the extension fills it with the video URL when it creates a
-note. Everything else in the template is copied as-is.
+note. If the frontmatter also has a `created_at` property, the extension fills
+it with today's date (`YYYY-MM-DD`). Everything else in the template is copied
+as-is.
 
 ```markdown
 ---
 tags:
   - talk
 video:
+created_at:
 done: false
 ---
 
