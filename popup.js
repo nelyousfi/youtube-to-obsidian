@@ -22,9 +22,6 @@ function buildDeeplink(path) {
 function openScheme(url) {
   chrome.tabs.create({ url, active: false }, (tab) => {
     if (chrome.runtime.lastError || !tab || !tab.id) return;
-    setTimeout(() => {
-      chrome.tabs.remove(tab.id);
-    }, 1500);
   });
 }
 
@@ -111,7 +108,11 @@ async function init() {
   }
 
   if (!info || !info.ok || !info.title) {
-    showState(info && info.message ? info.message : "Open a YouTube video to add a note.");
+    showState(
+      info && info.message
+        ? info.message
+        : "Open a YouTube video to add a note.",
+    );
     return;
   }
 
@@ -133,7 +134,11 @@ $addNote.addEventListener("click", async () => {
       payload: currentInfo,
     });
   } catch (e) {
-    res = { ok: false, status: "error", message: "Could not reach the extension background." };
+    res = {
+      ok: false,
+      status: "error",
+      message: "Could not reach the extension background.",
+    };
   }
 
   if (res && res.ok) {
