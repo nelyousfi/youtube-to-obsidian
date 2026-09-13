@@ -75,13 +75,76 @@ async function fetchVideoInfo(url) {
         url: canonical,
       };
     }
-    return {
-      ok: false,
-      message: `Could not load video info (HTTP ${res.status}). Embedding may be disabled.`,
-    };
+    if (res.status !== 401) {
+      return {
+        ok: false,
+        message: `Could not load video info (HTTP ${res.status}). Embedding may be disabled.`,
+      };
+    }
   } catch (err) {
     return { ok: false, message: "Could not reach YouTube. Check your connection." };
   }
+
+  try {
+    const pageRes = await fetch(canonical);
+    if (pageRes.ok) {
+      const html = await pageRes.text();
+      const details = extractVideoDetailsFromHtml(html);
+      if (details && details.title) {
+        return {
+          ok: true,
+          title: details.title,
+          channel: details.author || "",
+          url: canonical,
+        };
+      }
+    }
+  } catch (err) {
+    // fall through to the error below
+  }
+
+  return {
+    ok: false,
+    message: "Could not load video info (HTTP 401). Embedding may be disabled.",
+  };
+}
+
+function extractVideoDetailsFromHtml(html) {
+  const marker = '"videoDetails":{';
+  const start = html.indexOf(marker);
+  if (start === -1) return null;
+
+  let depth = 1;
+  let inString = false;
+  let escaped = false;
+  for (let i = start + marker.length; i < html.length; i++) {
+    const ch = html[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === "\\") {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === "{") {
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0) {
+        try {
+          return JSON.parse(html.slice(start + marker.length - 1, i + 1));
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
 }
 
 function injectVideo(template, url) {
